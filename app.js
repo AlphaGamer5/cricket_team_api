@@ -29,22 +29,31 @@ const initializeDbandServer = async () => {
 // Starting the Server and connecting to Database
 initializeDbandServer();
 
+const makeObject = (player) => {
+  return {
+    playerId: player.player_id,
+    playerName: player.player_name,
+    jerseyNumber: player.jersey_number,
+    role: player.role,
+  };
+};
+
 // Getting list of all players
-app.get("/players", async (req, res) => {
+app.get("/players/", async (req, res) => {
   const query = `
-        SELECT * FROM cricket_team
+        SELECT * 
+        FROM cricket_team
     `;
 
   const players = await db.all(query);
 
-  res.send(players);
+  res.send(players.map((player) => makeObject(player)));
 });
 
 // Adding a player to Database
-app.post("/players", async (req, res) => {
+app.post("/players/", async (req, res) => {
   try {
     const { playerName, jerseyNumber, role } = req.body;
-    console.log(playerName, jerseyNumber, role);
     const query = `INSERT INTO cricket_team(player_name, jersey_number, role) VALUES('${playerName}',${jerseyNumber},'${role}');`;
     const player = await db.run(query);
     res.send("Player Added to Team");
@@ -54,15 +63,15 @@ app.post("/players", async (req, res) => {
 });
 
 // Getting a player with id
-app.get("/players/:playerId", async (req, res) => {
+app.get("/players/:playerId/", async (req, res) => {
   const { playerId } = req.params;
   const query = `SELECT * FROM cricket_team WHERE player_id = ${playerId}`;
   const player = await db.get(query);
-  res.send(player);
+  res.send(makeObject(player));
 });
 
 // Updating a player with id
-app.put("/players/:playerId", async (req, res) => {
+app.put("/players/:playerId/", async (req, res) => {
   const { playerId } = req.params;
   const { playerName, jerseyNumber, role } = req.body;
   const query = `
@@ -80,7 +89,7 @@ app.put("/players/:playerId", async (req, res) => {
 });
 
 // Delete a player
-app.delete("/players/:playerId", async (req, res) => {
+app.delete("/players/:playerId/", async (req, res) => {
   const { playerId } = req.params;
   const query = `
         DELETE FROM cricket_team
@@ -89,4 +98,5 @@ app.delete("/players/:playerId", async (req, res) => {
   const player = await db.run(query);
   res.send("Player Removed");
 });
+
 module.exports = app;
